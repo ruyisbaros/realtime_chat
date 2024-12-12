@@ -15,9 +15,14 @@ router = APIRouter(prefix="/users", tags=["Users"])  # Tags for Swagger
 # response_model=UserOut
 @router.get('/get', status_code=status.HTTP_200_OK, response_model=UserOut)
 def current_user(request: Request, db: Session = Depends(get_db)):
-    token = request.cookies.get("jwt_token")
-    print(token)
-    payload = get_current_user(token)
-    current_user = db.query(models.User).filter(
-        models.User.email == payload.get("email")).first()
-    return current_user
+    """Get current user"""
+    try:
+        token = request.cookies.get("jwt_token")
+        print(token)
+        payload = get_current_user(token)
+        current_user = db.query(models.User).filter(
+            models.User.email == payload.get("email")).first()
+        return current_user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

@@ -31,7 +31,8 @@ def register_user(
         db.commit()
         db.refresh(new_user)
         token = create_access_token({"email": new_user.email})
-        response.set_cookie(key="jwt_token", value=token, httponly=True)
+        response.set_cookie(key="jwt_token", value=token,
+                            httponly=True)
         return new_user
     except Exception as e:
         raise HTTPException(
@@ -41,18 +42,30 @@ def register_user(
 @ router.post("/login", response_model=Token)
 def login_user(response: Response, payload: UserLogin, db: Session = Depends(get_db)):
     """Authenticate a user and return an access token."""
-    user = db.query(models.User).filter(
-        models.User.email == payload.email).first()
-    if not user:
+    try:
+        user = db.query(models.User).filter(
+            models.User.email == payload.email).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Wrong credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        # Check if password is correct
+        if not verify_password(payload.password, user.password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Wrong credentials",)
+        token = create_access_token({"email": user.email})
+        response.set_cookie(key="jwt_token", value=token,
+                            httponly=True)
+        return {"access_token": token, "token_type": "bearer"}
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Wrong credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-      # Check if password is correct
-    if not verify_password(payload.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Wrong credentials",)
-    token = create_access_token({"email": user.email})
-    response.set_cookie(key="jwt_token", value=token, httponly=True)
-    return {"access_token": token, "token_type": "bearer"}
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@ router.get("/logout", response_model=str)
+def logout_user(response: Response):
+    """Logout a user and delete the access token."""
+    response.delete_cookie(key="jwt_token")
+    return "Logged out successfully"
