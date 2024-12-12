@@ -1,12 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from ..utils import models
 from ..utils import models
 from ..utils.database import get_db
-from ..schemas.users_schemas import UserCreate, UserOut, Token, UserLogin
-from ..utils.pswds import hash_paswords, verify_password
-from ..utils.oauth import create_access_token, get_current_user
+from ..schemas.users_schemas import UserOut
+from ..utils.oauth import verify_access_token
 
 
 router = APIRouter(prefix="/users", tags=["Users"])  # Tags for Swagger
@@ -18,8 +17,8 @@ def current_user(request: Request, db: Session = Depends(get_db)):
     """Get current user"""
     try:
         token = request.cookies.get("jwt_token")
-        print(token)
-        payload = get_current_user(token)
+        # print(token)
+        payload = verify_access_token(token)
         current_user = db.query(models.User).filter(
             models.User.email == payload.get("email")).first()
         return current_user

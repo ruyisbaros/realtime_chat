@@ -1,18 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
 from ..utils import models
 from ..utils.database import get_db
-from ..schemas.users_schemas import UserCreate, UserOut, Token, UserLogin
+from ..schemas.users_schemas import UserCreate, UserOut, UserLogin
 from ..utils.pswds import hash_paswords, verify_password
-from ..utils.oauth import create_access_token, get_current_user
-
+from ..utils.oauth import create_access_token
+from ..utils.cloudinary_set import upload_cloud
 
 router = APIRouter(prefix="/users/auth", tags=["Auth"])  # Tags for swagger
 
 
 @ router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserOut)
-def register_user(
+async def register_user(
         response: Response,
         payload: UserCreate,
         db: Session = Depends(get_db)):
@@ -26,6 +26,10 @@ def register_user(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
         # hash the password
         payload.password = hash_paswords(payload.password)
+        # upload profile image to cloud storage
+        if payload.prof_img:
+            uploaded_img = await upload_cloud(payload.prof_img)
+        payload.prof_img = uploaded_img['secure_url']
         new_user = models.User(**payload.model_dump())
         db.add(new_user)
         db.commit()
@@ -33,13 +37,14 @@ def register_user(
         token = create_access_token({"email": new_user.email})
         response.set_cookie(key="jwt_token", value=token,
                             httponly=True)
+
         return new_user
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@ router.post("/login", response_model=Token)
+@ router.post("/login", response_model=UserOut)
 def login_user(response: Response, payload: UserLogin, db: Session = Depends(get_db)):
     """Authenticate a user and return an access token."""
     try:
@@ -58,7 +63,7 @@ def login_user(response: Response, payload: UserLogin, db: Session = Depends(get
         token = create_access_token({"email": user.email})
         response.set_cookie(key="jwt_token", value=token,
                             httponly=True)
-        return {"access_token": token, "token_type": "bearer"}
+        return user
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
