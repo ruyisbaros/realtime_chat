@@ -9,19 +9,15 @@ from ..utils.pswds import hash_paswords, verify_password
 from ..utils.oauth import create_access_token, get_current_user
 
 
-router = APIRouter(prefix="/admin", tags=["Search"])  # Tags for Swagger
+router = APIRouter(prefix="/users", tags=["Users"])  # Tags for Swagger
 
 
-@router.post('/',  response_model=UserOut)
-def get_admin(request: Request, db: Session = Depends(get_db)):
+# response_model=UserOut
+@router.get('/get', status_code=status.HTTP_200_OK, response_model=UserOut)
+def current_user(request: Request, db: Session = Depends(get_db)):
     token = request.cookies.get("jwt_token")
     print(token)
-    print(type(token))
     payload = get_current_user(token)
     current_user = db.query(models.User).filter(
         models.User.email == payload.get("email")).first()
-    if not current_user or current_user.is_admin != True:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="You are not an admin")
-
     return current_user
