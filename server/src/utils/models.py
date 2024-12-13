@@ -32,8 +32,9 @@ class Message(Base):
         "users.id", ondelete="CASCADE"), nullable=False)
     recipient_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False)
-    subject = Column(String, nullable=False)
-    message = Column(String, nullable=False)
+    body = Column(String, nullable=False)
+    image = Column(String, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
     sender = relationship("User", foreign_keys=[sender_id])
+    receiver = relationship("User", foreign_keys=[recipient_id])

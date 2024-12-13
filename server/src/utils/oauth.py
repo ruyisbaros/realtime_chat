@@ -1,10 +1,11 @@
 import os
 from datetime import datetime, timedelta
-
+from .models import User
+from .database import get_db
 from dotenv import load_dotenv
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request, Depends
+from sqlalchemy.orm import Session
 import jwt
-from jwt.exceptions import InvalidTokenError
 
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
@@ -35,3 +36,17 @@ def verify_access_token(token: str):
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
+
+
+def get_current_user(request: Request, db: Session = Depends(get_db)):
+    """Get current user"""
+    try:
+        token = request.cookies.get("jwt_token")
+        # print(token)
+        payload = verify_access_token(token)
+        current_user = db.query(User).filter(
+            User.email == payload.get("email")).first()
+        return current_user
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

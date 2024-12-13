@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from ..utils import models
-from ..utils import models
 from ..utils.database import get_db
 from ..schemas.users_schemas import UserOut
 from ..utils.oauth import verify_access_token

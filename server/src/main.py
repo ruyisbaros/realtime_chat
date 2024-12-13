@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 from .utils.database import get_db, engine
 from .utils import models
-from .routes import auth_routes, user_routes
+from .routes import auth_routes, user_routes, message_routes
 
 load_dotenv()
 
@@ -27,6 +27,6 @@ app.add_middleware(
 # SET ROUTES
 app.include_router(auth_routes.router)
 app.include_router(user_routes.router)
-# app.include_router(song_routes.router)
+app.include_router(message_routes.router)
 # app.include_router(album_routes.router)
 # app.include_router(stats_routes.router)

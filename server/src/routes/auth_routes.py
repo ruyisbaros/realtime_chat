@@ -27,9 +27,9 @@ async def register_user(
         # hash the password
         payload.password = hash_paswords(payload.password)
         # upload profile image to cloud storage
-        if payload.prof_img:
+        """ if payload.prof_img:
             uploaded_img = await upload_cloud(payload.prof_img)
-        payload.prof_img = uploaded_img['secure_url']
+        payload.prof_img = uploaded_img['secure_url'] """
         new_user = models.User(**payload.model_dump())
         db.add(new_user)
         db.commit()

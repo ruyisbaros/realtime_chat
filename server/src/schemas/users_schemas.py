@@ -26,6 +26,16 @@ class UserOut(BaseModel):
         from_attributes = True
 
 
+class MessageUserOut(BaseModel):
+    id: int
+    full_name: str
+    email: EmailStr
+    prof_img: Optional[str] = ""
+
+    class Config:
+        from_attributes = True
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
