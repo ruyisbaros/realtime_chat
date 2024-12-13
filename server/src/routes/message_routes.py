@@ -32,7 +32,7 @@ def create_message(
     return new_message
 
 
-@router.get("/", response_model=List[MessageOut])
+@router.get("/gel_all", response_model=List[MessageOut])
 def get_messages(
         request: Request,
         db: Session = Depends(get_db)):
@@ -43,7 +43,22 @@ def get_messages(
         models.User.email == payload_.get("email")).first()
     messages = db.query(models.Message).filter(
         (models.Message.sender_id == current_user.id) |
-        (models.Message.receiver_id == current_user.id)).all()
+        (models.Message.recipient_id == current_user.id)).all()
+    return messages
+
+
+@router.get("/dialogues/{recipient_id}", response_model=List[MessageOut])
+def get_bilateral_dialogues(
+        request: Request,
+        recipient_id: int,
+        db: Session = Depends(get_db)):
+    """Get my bilateral dialogues"""
+    token = request.cookies.get("jwt_token")
+    payload_ = verify_access_token(token)
+    current_user = db.query(models.User).filter(
+        models.User.email == payload_.get("email")).first()
+    messages = db.query(models.Message).filter((models.Message.sender_id == current_user.id) &
+                                               (models.Message.recipient_id == recipient_id)).all()
     return messages
 
 
@@ -60,7 +75,7 @@ def get_message(
     message = db.query(models.Message).filter(
         (models.Message.id == message_id) &
         ((models.Message.sender_id == current_user.id) |
-         (models.Message.receiver_id == current_user.id))).first()
+         (models.Message.recipient_id == current_user.id))).first()
     if not message:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
@@ -79,8 +94,7 @@ def update_message(
         models.User.email == payload_.get("email")).first()
     message = db.query(models.Message).filter(
         (models.Message.id == message_id) &
-        ((models.Message.sender_id == current_user.id) |
-         (models.Message.receiver_id == current_user.id))).first()
+        ((models.Message.sender_id == current_user.id))).first()
     if not message:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
@@ -90,7 +104,7 @@ def update_message(
     return updated_message
 
 
-@router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/delete/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_message(
         message_id: int,
         request: Request,
@@ -102,8 +116,7 @@ def delete_message(
         models.User.email == payload_.get("email")).first()
     message = db.query(models.Message).filter(
         (models.Message.id == message_id) &
-        ((models.Message.sender_id == current_user.id) |
-         (models.Message.receiver_id == current_user.id))).first()
+        ((models.Message.sender_id == current_user.id))).first()
     if not message:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
