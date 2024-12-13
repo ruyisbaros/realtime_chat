@@ -57,8 +57,8 @@ def get_bilateral_dialogues(
     payload_ = verify_access_token(token)
     current_user = db.query(models.User).filter(
         models.User.email == payload_.get("email")).first()
-    messages = db.query(models.Message).filter((models.Message.sender_id == current_user.id) &
-                                               (models.Message.recipient_id == recipient_id)).all()
+    messages = db.query(models.Message).filter(((models.Message.sender_id == current_user.id) & (models.Message.recipient_id == recipient_id)) | (
+        (models.Message.sender_id == recipient_id) & (models.Message.recipient_id == current_user.id))).all()
     return messages
 
 
