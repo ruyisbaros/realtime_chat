@@ -11,28 +11,28 @@ load_dotenv()
 
 
 app = FastAPI()
+get_db()  # run DB connection
+models.Base.metadata.create_all(bind=engine)
 origins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:5173",
     "http://localhost:5174",
-    "127.0.0.1:3000",
-    "127.0.0.1:3001",
-    "127.0.0.1:5173",
-    "127.0.0.1:5174",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,  # Set to True if you're using cookies or authentication
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Access-Control-Allow-Headers", 'Content-Type',
+                   'Authorization', 'Access-Control-Allow-Origin', "Set-Cookie"],
+    allow_methods=["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
 )
-get_db()  # run DB connection
 
-
-models.Base.metadata.create_all(bind=engine)
 manager = ConnectionManager()
 
 

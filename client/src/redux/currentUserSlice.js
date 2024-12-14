@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import Cookies from "js-cookie";
+//import Cookies from "js-cookie";
 
 const initialState = {
   loggedUser: {
@@ -16,6 +16,7 @@ const currentUserSlice = createSlice({
   initialState,
   reducers: {
     setCurrentUser: (state, action) => {
+      console.log(action.payload)
       state.loggedUser= {...action.payload}
     },
   },

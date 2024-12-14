@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
+from typing import Dict, Any
 
 from ..utils import models
 from ..utils.database import get_db
@@ -7,6 +8,7 @@ from ..schemas.users_schemas import UserCreate, UserOut, UserLogin
 from ..utils.pswds import hash_paswords, verify_password
 from ..utils.oauth import create_access_token
 from ..utils.cloudinary_set import upload_cloud
+import json
 
 router = APIRouter(prefix="/api/v1/users/auth",
                    tags=["Auth"])  # Tags for swagger
@@ -18,7 +20,7 @@ async def register_user(
         payload: UserCreate,
         db: Session = Depends(get_db)):
     """Create a new user."""
-    # print(payload.email)
+    print(payload)
     try:
         is_email_exist = db.query(models.User).filter(
             models.User.email == payload.email).first()
@@ -36,16 +38,21 @@ async def register_user(
         else:
             payload.password = hashed_password
             new_user = models.User(
-                **payload.model_dump(exclude_unset=True, exclude_none=True))
+                **payload.model_dump(exclude_none=True))
         print(new_user)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
         token = create_access_token({"email": new_user.email})
         response.set_cookie(key="jwt_token", value=token,
-                            httponly=True)
+                            httponly=True, samesite='lax', secure=False)
+        if new_user:
+            user_dict = dict(new_user.__dict__)  # Convert to dictionary
+            # Remove any SQLAlchemy-specific attributes (e.g., '_sa_instance_state')
+            user_dict.pop('_sa_instance_state', None)
+            # print(user_dict)  # Now you have a dictionary you can send
+            return user_dict
 
-        return new_user
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -69,8 +76,13 @@ def login_user(response: Response, payload: UserLogin, db: Session = Depends(get
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Wrong credentials",)
         token = create_access_token({"email": user.email})
         response.set_cookie(key="jwt_token", value=token,
-                            httponly=True)
-        return user
+                            httponly=True, samesite='lax', secure=False)
+        if user:
+            user_dict = dict(user.__dict__)  # Convert to dictionary
+            # Remove any SQLAlchemy-specific attributes (e.g., '_sa_instance_state')
+            user_dict.pop('_sa_instance_state', None)
+            return user_dict
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

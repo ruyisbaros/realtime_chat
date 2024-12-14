@@ -8,7 +8,6 @@ class UserBase(BaseModel):
     full_name: str
     email: EmailStr
     prof_img: Optional[UploadFile] = None
-    # path: Optional[FilePath] = None
     password: str
     role: Optional[str] = "USER"
 
