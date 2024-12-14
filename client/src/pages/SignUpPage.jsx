@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { setCurrentUser } from "../redux/currentUserSlice";
+import AuthImagePattern from "../components/AuthImagePattern";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import Cookies from "js-cookie";
 
 const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,9 +26,10 @@ const SignUpPage = () => {
   const [loading, showLoading] = useState(false);
   const { full_name, email, password } = formData_;
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const handleInputChange = (e) => {
     setFormData({ ...formData_, [e.target.name]: e.target.value });
-    console.log(formData_);
+    //console.log(formData_);
   };
 
   const handleSubmit = async (e) => {
@@ -38,6 +43,11 @@ const SignUpPage = () => {
       const { data } = await axios.post(`/users/auth/register`, formData);
       console.log(data);
       dispatch(setCurrentUser(data));
+      Cookies.set("user", JSON.stringify(data));
+      navigate("/");
+      toast.info(
+        "Register success! Please check your email and activate your account."
+      );
       showLoading(false);
     } catch (error) {
       console.log(error.response.data.message);
@@ -146,8 +156,23 @@ const SignUpPage = () => {
               )}
             </button>
           </form>
+          <div className="text-center">
+            <p className="text-base-content/60">
+              Already have an account?{" "}
+              <Link to="/login" className="link link-primary">
+                Sign in
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* right side */}
+
+      <AuthImagePattern
+        title="Join our community"
+        subtitle="Connect with friends, share moments, and stay in touch with your loved ones."
+      />
     </div>
   );
 };

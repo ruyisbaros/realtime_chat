@@ -11,8 +11,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
-import LoggedInRoutes from "./routes/LoggedInRoutes";
-import NotLoggedInRoutes from "./routes/NotLoggedInRoutes";
+
 import axios from "./axios";
 import { setCurrentUser } from "./redux/currentUserSlice";
 import SignUpPage from "./pages/SignUpPage";
@@ -44,17 +43,12 @@ function App() {
       <div className="">
         <ToastContainer position="bottom-center" limit={1} />
         <Navbar />
-        <SignUpPage></SignUpPage>
         <Routes>
-          <Route element={<LoggedInRoutes />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Route>
-          <Route element={<NotLoggedInRoutes />}>
-            <Route path="/signup" element={<SignUpPage />} />
-            {/* <Route path="/login" element={<LoginPage />} /> */}
-          </Route>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/register" element={<SignUpPage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </div>
     </>
