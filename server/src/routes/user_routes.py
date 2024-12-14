@@ -7,7 +7,7 @@ from ..schemas.users_schemas import UserOut
 from ..utils.oauth import verify_access_token
 
 
-router = APIRouter(prefix="/users", tags=["Users"])  # Tags for Swagger
+router = APIRouter(prefix="/api/v1/users", tags=["Users"])  # Tags for Swagger
 
 
 # response_model=UserOut

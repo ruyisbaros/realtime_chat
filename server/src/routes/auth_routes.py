@@ -8,7 +8,8 @@ from ..utils.pswds import hash_paswords, verify_password
 from ..utils.oauth import create_access_token
 from ..utils.cloudinary_set import upload_cloud
 
-router = APIRouter(prefix="/users/auth", tags=["Auth"])  # Tags for swagger
+router = APIRouter(prefix="/api/v1/users/auth",
+                   tags=["Auth"])  # Tags for swagger
 
 
 @ router.post("/register", status_code=status.HTTP_201_CREATED, response_model=UserOut)

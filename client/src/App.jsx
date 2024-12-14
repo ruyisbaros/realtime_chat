@@ -1,14 +1,25 @@
 import { useEffect } from "react";
+import Navbar from "./components/Navbar";
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
+import SettingsPage from "./pages/SettingsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
-  let ws = null;
-  useEffect(() => {
-    ws = new WebSocket("ws://127.0.0.1:8000/ws")
-    ws.onopen = () => console.log("Connected to server");
-  });
   return (
     <>
-      <div className="bg-slate-600">Hello World</div>
+      <div className="">
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+        </Routes>
+      </div>
     </>
   );
 }

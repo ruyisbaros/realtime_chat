@@ -7,13 +7,14 @@ from ..utils.database import get_db
 from ..utils.oauth import verify_access_token
 from ..schemas.messages_schema import CreateMessage, MessageOut
 from ..schemas.users_schemas import UserOut
+from ..utils.cloudinary_set import upload_cloud
 
-
-router = APIRouter(prefix="/messages", tags=["Messages"])  # Tags for Swagger
+router = APIRouter(prefix="/api/v1/messages",
+                   tags=["Messages"])  # Tags for Swagger
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=MessageOut)
-def create_message(
+async def create_message(
         request: Request,
         payload: CreateMessage,
         db: Session = Depends(get_db)):
@@ -23,12 +24,13 @@ def create_message(
     payload_ = verify_access_token(token)
     current_user = db.query(models.User).filter(
         models.User.email == payload_.get("email")).first()
-    """ if payload.image:
-            image_url, image_public_id = await upload_cloud(file=payload.image.file)
-            new_message = models.Message({"sender_id":current_user.id, "recipient_id":payload.recipient_id, "body":payload.body, 
-                                   "image_url":image_url, "image_public_id":image_public_id} ) """
-    new_message = models.Message(
-        **payload.model_dump(), sender_id=current_user.id)
+    if payload.image:
+        image_url, image_public_id = await upload_cloud(file=payload.image.file)
+        new_message = models.Message({"sender_id": current_user.id, "recipient_id": payload.recipient_id, "body": payload.body,
+                                      "image_url": image_url, "image_public_id": image_public_id})
+    else:
+        new_message = models.Message(
+            **payload.model_dump(exclude=payload.image), sender_id=current_user.id)
     db.add(new_message)
     db.commit()
     db.refresh(new_message)
