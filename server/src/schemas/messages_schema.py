@@ -8,7 +8,7 @@ from ..schemas.users_schemas import MessageUserOut
 class MessageBase(BaseModel):
     recipient_id: int
     body: str
-    image: Optional[str] = ""
+    image: Optional[str] = None
 
 
 class CreateMessage(MessageBase):
@@ -20,7 +20,7 @@ class MessageOut(BaseModel):
     sender: Optional[MessageUserOut]
     receiver: Optional[MessageUserOut]
     body: str
-    image: Optional[str]
+    image_url: Optional[str]
     created_at: datetime
 
     class Config:

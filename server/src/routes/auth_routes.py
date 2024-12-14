@@ -25,12 +25,18 @@ async def register_user(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
         # hash the password
-        payload.password = hash_paswords(payload.password)
+        hashed_password = hash_paswords(payload.password)
         # upload profile image to cloud storage
-        """ if payload.prof_img:
-            uploaded_img = await upload_cloud(payload.prof_img)
-        payload.prof_img = uploaded_img['secure_url'] """
-        new_user = models.User(**payload.model_dump())
+        if payload.prof_img:
+            image_url, image_public_id = await upload_cloud(file=payload.prof_img)
+
+            new_user = models.User({"full_name": payload.full_name, "email": payload.email, "password": hashed_password,
+                                    "role": payload.role, "prof_img_url": image_url, "prof_img_id": image_public_id})
+        else:
+            payload.password = hashed_password
+            new_user = models.User(
+                **payload.model_dump(exclude_unset=True, exclude_none=True))
+        print(new_user)
         db.add(new_user)
         db.commit()
         db.refresh(new_user)

@@ -23,11 +23,16 @@ def create_message(
     payload_ = verify_access_token(token)
     current_user = db.query(models.User).filter(
         models.User.email == payload_.get("email")).first()
+    """ if payload.image:
+            image_url, image_public_id = await upload_cloud(file=payload.image.file)
+            new_message = models.Message({"sender_id":current_user.id, "recipient_id":payload.recipient_id, "body":payload.body, 
+                                   "image_url":image_url, "image_public_id":image_public_id} ) """
     new_message = models.Message(
         **payload.model_dump(), sender_id=current_user.id)
     db.add(new_message)
     db.commit()
     db.refresh(new_message)
+    # TODO FOR SOCKET IO
     # return new_message
     return new_message
 

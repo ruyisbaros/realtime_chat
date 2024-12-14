@@ -17,7 +17,8 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     full_name = Column(String, nullable=False)
-    prof_img = Column(String, nullable=True)
+    prof_img_url = Column(String, nullable=True)
+    prof_img_id = Column(String, nullable=True)
     email = Column(String, unique=True, index=True, nullable=False)
     role = Column(Enum(UserRole), default=UserRole.USER)
     password = Column(String, nullable=False)
@@ -33,7 +34,8 @@ class Message(Base):
     recipient_id = Column(Integer, ForeignKey(
         "users.id", ondelete="CASCADE"), nullable=False)
     body = Column(String, nullable=False)
-    image = Column(String, nullable=True)
+    image_url = Column(String, nullable=True)
+    image_public_id = Column(String, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
     sender = relationship("User", foreign_keys=[sender_id])

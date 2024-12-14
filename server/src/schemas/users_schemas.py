@@ -1,12 +1,14 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, FilePath
 from datetime import datetime
 from typing import Optional
+from fastapi import UploadFile, File
 
 
 class UserBase(BaseModel):
     full_name: str
     email: EmailStr
-    prof_img: Optional[str] = ""
+    prof_img: Optional[UploadFile] = None
+    # path: Optional[FilePath] = None
     password: str
     role: Optional[str] = "USER"
 
@@ -19,7 +21,7 @@ class UserOut(BaseModel):
     id: int
     full_name: str
     email: EmailStr
-    prof_img: Optional[str] = ""
+    prof_img_url: Optional[str] = ""
     created_at: datetime
 
     class Config:
@@ -30,7 +32,7 @@ class MessageUserOut(BaseModel):
     id: int
     full_name: str
     email: EmailStr
-    prof_img: Optional[str] = ""
+    prof_img_url: Optional[str] = ""
 
     class Config:
         from_attributes = True
