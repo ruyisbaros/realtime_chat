@@ -32,8 +32,27 @@ const SignUpPage = () => {
     //console.log(formData_);
   };
 
+  const validateCredentials = (credentials) => {
+    if (!credentials.full_name.trim()) {
+      return toast.error("please provide your full name");
+    }
+    if (!credentials.email.trim()) {
+      return toast.error("please provide your email");
+    }
+    if (!/^\S+@\S+\.\S+$/i.test(credentials.email)) {
+      return toast.error("please provide a valid email");
+    }
+    if (!credentials.password.trim()) {
+      return toast.error("please provide your password");
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    /* Validate Credentials */
+    const success = validateCredentials(formData_);
+    if (success !== true) return;
     showLoading(true);
     try {
       const formData = new FormData();

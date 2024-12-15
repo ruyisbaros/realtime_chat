@@ -14,8 +14,12 @@ const currentUserSlice = createSlice({
       console.log(action.payload)
       state.loggedUser= {...action.payload}
     },
+    logout: (state, _) => {
+      state.loggedUser = null;
+      Cookies.remove("user");
+    },
   },
 });
 
-export const { setCurrentUser } = currentUserSlice.actions;
+export const { setCurrentUser, logout } = currentUserSlice.actions;
 export default currentUserSlice.reducer;
