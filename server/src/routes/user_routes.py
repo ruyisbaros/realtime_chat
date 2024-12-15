@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile
 from sqlalchemy.orm import Session
-from typing import Any
+from typing import List
 import base64
 from io import BytesIO
 
@@ -74,3 +74,17 @@ async def update_user(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/get_all", status_code=status.HTTP_200_OK, response_model=List[UserOut])
+async def get_all_users(db: Session = Depends(get_db)):
+    """Get all users"""
+    try:
+        users = db.query(models.User).all()
+        for user in users:
+            print(user)
+        return [dict(user.__dict__) for user in users]
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        # return(str(e))

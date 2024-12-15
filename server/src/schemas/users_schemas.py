@@ -24,7 +24,7 @@ class UserCreate(UserBase):
 class UserOut(BaseModel):
     id: int
     full_name: str
-    email: EmailStr
+    email: str
     prof_img_url: Optional[str] = ""
     created_at: datetime
 
