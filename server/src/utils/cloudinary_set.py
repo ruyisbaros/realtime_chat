@@ -14,7 +14,7 @@ cloudinary.config(
 )
 
 
-async def upload_cloud(file: str, folder_name: str = "LLM") -> str:
+async def upload_cloud(file, resource_type: str, format: str, folder_name: str = "LLM") -> str:
     """
     Uploads a file to Cloudinary and places it in a specified folder.
 

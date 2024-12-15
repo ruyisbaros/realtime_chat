@@ -1,7 +1,12 @@
-from pydantic import BaseModel, EmailStr, FilePath
+from pydantic import BaseModel, EmailStr, FilePath, Field
 from datetime import datetime
 from typing import Optional
 from fastapi import UploadFile, File
+
+
+class Base64Image(BaseModel):
+    image_data: str = Field(..., description="Base64 encoded image data")
+    image_mime_type: str = Field(..., description="Image mime type")
 
 
 class UserBase(BaseModel):
