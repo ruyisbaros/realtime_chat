@@ -16,9 +16,16 @@ const chatSlice = createSlice({
   reducers: {
         get_chat_users:(state,action)=>{
             state.chatUsers = action.payload;
+        },
+        get_between_chats:(state,action)=>{
+          state.between_chat = [...action.payload];
+        },
+        setSelectedUser:(state,action)=>{
+          state.selectedUser = action.payload;
         }
+
   }
 });
 
-export const { get_chat_users } = chatSlice.actions;
+export const { get_chat_users,get_between_chats,setSelectedUser } = chatSlice.actions;
 export default chatSlice.reducer;
