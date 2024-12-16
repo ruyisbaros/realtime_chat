@@ -1,19 +1,21 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Users } from "lucide-react";
 import { setSelectedUser } from "../redux/chatSlice";
 import SidebarSkeleton from "../skeletons/SidebarSkeleton";
 
 const Sidebar = ({ isUsersLoading }) => {
+  const dispatch = useDispatch();
   const { selectedUser, onlineUsers, chatUsers } = useSelector(
     (state) => state.chat
   );
+  const { loggedUser } = useSelector((store) => store.currentUser);
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   const filteredUsers = showOnlineOnly
     ? chatUsers.filter((user) => onlineUsers.includes(user.id))
-    : chatUsers;
+    : chatUsers.filter((user) => user.id !== loggedUser.id);
 
   if (isUsersLoading) return <SidebarSkeleton />;
   return (
@@ -35,7 +37,7 @@ const Sidebar = ({ isUsersLoading }) => {
             <span className="text-sm">Show online only</span>
           </label>
           <span className="text-xs text-zinc-500">
-            ({onlineUsers.length - 1} online)
+            ({onlineUsers.length} online)
           </span>
         </div>
       </div>
@@ -44,7 +46,7 @@ const Sidebar = ({ isUsersLoading }) => {
         {filteredUsers.map((user) => (
           <button
             key={user.id}
-            onClick={() => setSelectedUser(user)}
+            onClick={() => dispatch(setSelectedUser(user))}
             className={`
             w-full p-3 flex items-center gap-3
             hover:bg-base-300 transition-colors
@@ -57,11 +59,11 @@ const Sidebar = ({ isUsersLoading }) => {
           >
             <div className="relative mx-auto lg:mx-0">
               <img
-                src={user.profilePic || "/avatar.png"}
-                alt={user.name}
+                src={user.prof_img_url || "/avatar.png"}
+                alt={user.full_name}
                 className="size-12 object-cover rounded-full"
               />
-              {onlineUsers.includes(user._id) && (
+              {onlineUsers.includes(user.id) && (
                 <span
                   className="absolute bottom-0 right-0 size-3 bg-green-500 
                 rounded-full ring-2 ring-zinc-900"
@@ -71,9 +73,9 @@ const Sidebar = ({ isUsersLoading }) => {
 
             {/* User info - only visible on larger screens */}
             <div className="hidden lg:block text-left min-w-0">
-              <div className="font-medium truncate">{user.fullName}</div>
+              <div className="font-medium truncate">{user.full_name}</div>
               <div className="text-sm text-zinc-400">
-                {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                {onlineUsers.includes(user.id) ? "Online" : "Offline"}
               </div>
             </div>
           </button>

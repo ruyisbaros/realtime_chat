@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from "react";
 
-const ChatContainer = () => {
+const ChatContainer = ({ loadDialogues }) => {
   return <div>ChatContainer</div>;
 };
 
