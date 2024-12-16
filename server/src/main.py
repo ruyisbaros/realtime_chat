@@ -2,7 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
-
+import json
 from .utils.database import get_db, engine
 from .utils import models
 from .routes import auth_routes, user_routes, message_routes
@@ -32,37 +32,7 @@ app.add_middleware(
                    'Authorization', 'Access-Control-Allow-Origin', "Set-Cookie"],
     allow_methods=["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
 )
-
 manager = ConnectionManager()
-
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    print("WebSocket connection established")
-    try:
-        while True:
-            # Wait for incoming data from the client
-            data = await websocket.receive_json()
-
-            # Handle the event type based on data
-            event_type = data.get("event")
-            content = data.get("content")
-            recipient_id = data.get("recipient_id", None)
-
-            if event_type == "send_message":
-                await manager.send_personal_message(content, recipient_id)
-            elif event_type == "create_comment":
-                # Example for handling another event type
-                await manager.broadcast(f"New comment: {content}")
-            elif event_type == "update_profile":
-                # Add logic for profile updates
-                await manager.broadcast(f"Client #{client_id} updated profile")
-            else:
-                await websocket.send_text("Unknown event type")
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        print("Disconnect", websocket)
 
 
 # SET ROUTES
@@ -71,3 +41,45 @@ app.include_router(user_routes.router)
 app.include_router(message_routes.router)
 # app.include_router(album_routes.router)
 # app.include_router(stats_routes.router)
+
+# WebSocket Endpoint
+
+
+@app.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
+    await websocket.accept()
+    await manager.connect(websocket, user_id)
+    print("WebSocket connection established")
+    print(manager.active_connections)
+    try:
+        async for data in websocket.iter_json():  # Use async for loop
+            try:
+                event_type = data.get("event")
+                content = data.get("content")
+                recipient_id = data.get("recipient_id", None)
+
+                if event_type == "send_message":
+                    if not recipient_id:
+                        await websocket.send_text(json.dumps({"error": "Recipient ID is required"}))
+                        continue
+
+                    # Simply forward the message to the recipient
+                    await manager.send_personal_message(json.dumps({
+                        "event": "receive_message",
+                        "content": content,
+                        "sender_id": user_id
+                    }), recipient_id)
+                elif event_type == "create_comment":
+                    # Example for handling another event type
+                    await manager.broadcast(f"New comment: {content}")
+                elif event_type == "update_profile":
+                    # Add logic for profile updates
+                    await manager.broadcast(f"Client #{user_id} updated profile")
+                else:
+                    await websocket.send_text(json.dumps({"error": "Unknown event type"}))
+            except Exception as e:
+                print(f"Error processing message: {e}")
+                await websocket.send_text(json.dumps({"error": "Internal server error"}))
+    except WebSocketDisconnect:
+        print(f"WebSocket connection closed for user {user_id}")
+        manager.disconnect(websocket, user_id)

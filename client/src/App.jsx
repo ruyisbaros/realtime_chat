@@ -3,7 +3,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar";
 import { Routes, Route } from "react-router-dom";
-//import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 //import Cookies from "js-cookie";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -13,34 +13,39 @@ import ProfilePage from "./pages/ProfilePage";
 //import axios from "./axios";
 //import { setCurrentUser } from "./redux/currentUserSlice";
 import SignUpPage from "./pages/SignUpPage";
+import { useCallback, useEffect, useRef } from "react";
 
 function App() {
-  /*   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { loggedUser } = useSelector((store) => store.currentUser); */
-  /* console.log(loggedUser); */
-  /* const get_current_user = useCallback(async () => {
-    try {
-      const { data } = await axios.get("/users/get_CU");
-      console.log(data);
-      //console.log(Cookies.get("user"));
-      if (Cookies.get("user") === "undefined") {
-        Cookies.set("user", JSON.stringify(data));
-      }
-      dispatch(setCurrentUser(data));
-    } catch (error) {
-      console.log(error);
-      //toast.error(error.response.data.message);
-    }
-  }, [dispatch]);
+  const ws = useRef(null); // useRef for WebSocket instance
+  const { loggedUser } = useSelector((store) => store.currentUser);
 
+  const establish_sockets = useCallback(async () => {
+    console.log("Socket triggered");
+    ws.current = new WebSocket(`ws://localhost:8000/ws/${loggedUser.id}`);
+
+    ws.current.onopen = () => console.log("ws opened");
+    ws.current.onclose = () => console.log("ws closed");
+
+    /*  ws.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "message") {
+          setMessages((prevMessages) => [...prevMessages, data.message]);
+        }
+      } catch (error) {
+        console.error("Error parsing message:", error);
+      }
+    }; */
+  }, []);
   useEffect(() => {
-    if (loggedUser?.email) {
-      dispatch(setCurrentUser(JSON.parse(Cookies.get("user"))));
-    } else {
-      get_current_user();
-    }
-  }, [get_current_user]); */
+    establish_sockets();
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+      }
+    };
+  }, [establish_sockets]);
+
   return (
     <>
       <div className="">

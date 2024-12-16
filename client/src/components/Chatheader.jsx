@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setSelectedUser } from "../redux/chatSlice";
 
 const ChatHeader = () => {
+  const dispatch = useDispatch();
   const { selectedUser, onlineUsers } = useSelector((state) => state.chat);
   return (
     <div className="p-2.5 border-b border-base-300">
@@ -14,15 +15,15 @@ const ChatHeader = () => {
           <div className="avatar">
             <div className="size-10 rounded-full relative">
               <img
-                src={selectedUser.profilePic || "/avatar.png"}
-                alt={selectedUser.fullName}
+                src={selectedUser.prof_img_url || "/avatar.png"}
+                alt={selectedUser.full_name}
               />
             </div>
           </div>
 
           {/* User info */}
           <div>
-            <h3 className="font-medium">{selectedUser.fullName}</h3>
+            <h3 className="font-medium">{selectedUser.full_name}</h3>
             <p className="text-sm text-base-content/70">
               {onlineUsers.includes(selectedUser.id) ? "Online" : "Offline"}
             </p>
@@ -30,7 +31,7 @@ const ChatHeader = () => {
         </div>
 
         {/* Close button */}
-        <button onClick={() => setSelectedUser(null)}>
+        <button onClick={() => dispatch(setSelectedUser(null))}>
           <X />
         </button>
       </div>

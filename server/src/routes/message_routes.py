@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from typing import List
 from sqlalchemy.orm import Session
+import base64
+from io import BytesIO
 
 from ..utils import models
 from ..utils.database import get_db
@@ -25,12 +27,14 @@ async def create_message(
     current_user = db.query(models.User).filter(
         models.User.email == payload_.get("email")).first()
     if payload.image:
-        image_url, image_public_id = await upload_cloud(file=payload.image.file)
+        image_data = base64.b64decode(payload.image.image_data)
+        file_io = BytesIO(image_data)
+        image_url, image_public_id = await upload_cloud(file=file_io, resource_type="image", format=payload.image.image_mime_type.replace("image/", ""))
         new_message = models.Message({"sender_id": current_user.id, "recipient_id": payload.recipient_id, "body": payload.body,
                                       "image_url": image_url, "image_public_id": image_public_id})
     else:
         new_message = models.Message(
-            **payload.model_dump(exclude=payload.image), sender_id=current_user.id)
+            **payload.model_dump(exclude=payload.image, exclude_none=True), sender_id=current_user.id)
     db.add(new_message)
     db.commit()
     db.refresh(new_message)

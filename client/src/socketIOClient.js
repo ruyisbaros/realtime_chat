@@ -1,19 +1,47 @@
-/* import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux';
+import { store } from './store'; // Your Redux store
+import { wsConnected, wsDisconnected, wsMessageReceived, wsError } from './redux/actions'; // Your Redux actions
 
-const SocketClient = ({ socket }) => {
+let ws = null;
 
-    const { loggedUser } = useSelector(store => store.currentUser)
-    //const { socket } = useSelector(store => store.sockets)
-    const dispatch = useDispatch();
+export const connectWebSocket = (userId) => {
+    if (ws) {
+        return; // Already connected
+    }
 
-    useEffect(() => {
-        socket?.emit("joinUser", loggedUser._id)
-    }, [loggedUser._id, socket])
-    return (
-        <>
-        </>
-    )
-}
+    ws = new WebSocket(`ws://localhost:8000/ws/${userId}`);
 
-export default SocketClient */
+    ws.onopen = () => {
+        store.dispatch(wsConnected());
+    };
+
+    ws.onclose = () => {
+        store.dispatch(wsDisconnected());
+        ws = null;
+    };
+
+    ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            store.dispatch(wsMessageReceived(data));
+        } catch (error) {
+            console.error('Error parsing message:', error);
+        }
+    };
+
+    ws.onerror = (error) => {
+        store.dispatch(wsError(error));
+        ws = null;
+    };
+};
+
+export const disconnectWebSocket = () => {
+    if (ws) {
+        ws.close();
+    }
+};
+
+export const sendMessage = (message) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(message));
+    }
+};

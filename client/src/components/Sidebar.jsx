@@ -1,17 +1,39 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Users } from "lucide-react";
-import { setSelectedUser } from "../redux/chatSlice";
+import { get_between_chats, setSelectedUser } from "../redux/chatSlice";
 import SidebarSkeleton from "../skeletons/SidebarSkeleton";
+import axios from "../axios";
 
-const Sidebar = ({ isUsersLoading }) => {
+const Sidebar = ({ isUsersLoading, setLoadDialogues }) => {
   const dispatch = useDispatch();
   const { selectedUser, onlineUsers, chatUsers } = useSelector(
     (state) => state.chat
   );
   const { loggedUser } = useSelector((store) => store.currentUser);
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
+
+  const fetch_chat_with = useCallback(async () => {
+    try {
+      setLoadDialogues(true);
+      const { data } = await axios.get(
+        `/messages/dialogues/` + selectedUser.id
+      );
+      console.log(data);
+      dispatch(get_between_chats(data));
+      setLoadDialogues(false);
+    } catch (error) {
+      console.log(error);
+      setLoadDialogues(false);
+    }
+  }, [dispatch, selectedUser]);
+
+  useEffect(() => {
+    if (selectedUser) {
+      fetch_chat_with();
+    }
+  }, [fetch_chat_with, selectedUser]);
 
   const filteredUsers = showOnlineOnly
     ? chatUsers.filter((user) => onlineUsers.includes(user.id))

@@ -22,10 +22,13 @@ const chatSlice = createSlice({
         },
         setSelectedUser:(state,action)=>{
           state.selectedUser = action.payload;
+        }, 
+        add_between_chats:(state,action)=>{
+          state.between_chat.push(action.payload);
         }
 
   }
 });
 
-export const { get_chat_users,get_between_chats,setSelectedUser } = chatSlice.actions;
+export const { get_chat_users,get_between_chats,setSelectedUser,add_between_chats } = chatSlice.actions;
 export default chatSlice.reducer;

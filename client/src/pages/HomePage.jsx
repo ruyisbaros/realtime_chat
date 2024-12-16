@@ -12,26 +12,17 @@ const HomePage = () => {
   const dispatch = useDispatch();
   const [loadDialogues, setLoadDialogues] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(false);
+
   const fetch_chat_users = useCallback(async () => {
     try {
+      setIsUsersLoading(true);
       const { data } = await axios.get("/users/get_all");
-      console.log(data);
+      //console.log(data);
       dispatch(get_chat_users(data));
+      setIsUsersLoading(false);
     } catch (error) {
       console.log(error);
-    }
-  }, [dispatch]);
-
-  const fetch_chat_with = useCallback(async () => {
-    try {
-      setLoadDialogues(true);
-      const { data } = await axios.get(`/messages/dialogues/2`);
-      console.log(data);
-      dispatch(get_between_chats(data));
-      setLoadDialogues(false);
-    } catch (error) {
-      console.log(error);
-      setLoadDialogues(false);
+      setIsUsersLoading(false);
     }
   }, [dispatch]);
 
@@ -39,16 +30,15 @@ const HomePage = () => {
     fetch_chat_users();
   }, [fetch_chat_users]);
 
-  useEffect(() => {
-    fetch_chat_with();
-  }, [fetch_chat_with]);
-
   return (
     <div className="h-screen bg-base-200">
       <div className="flex items-center justify-center pt-20 px-4">
         <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-6xl h-[calc(100vh-8rem)]">
           <div className="flex h-full rounded-lg overflow-hidden">
-            <Sidebar isUsersLoading={isUsersLoading} />
+            <Sidebar
+              isUsersLoading={isUsersLoading}
+              setLoadDialogues={setLoadDialogues}
+            />
             {!selectedUser ? (
               <NoChatSelect />
             ) : (

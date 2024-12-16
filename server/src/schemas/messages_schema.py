@@ -2,13 +2,13 @@ from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import List, Optional
 
-from ..schemas.users_schemas import MessageUserOut
+from ..schemas.users_schemas import MessageUserOut, Base64Image
 
 
 class MessageBase(BaseModel):
     recipient_id: int
     body: str
-    image: Optional[str] = None
+    image: Optional[Base64Image] = None
 
 
 class CreateMessage(MessageBase):

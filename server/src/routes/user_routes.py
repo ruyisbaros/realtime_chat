@@ -81,8 +81,7 @@ async def get_all_users(db: Session = Depends(get_db)):
     """Get all users"""
     try:
         users = db.query(models.User).all()
-        for user in users:
-            print(user)
+
         return [dict(user.__dict__) for user in users]
     except Exception as e:
         raise HTTPException(
