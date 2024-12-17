@@ -4,13 +4,14 @@ import { Image, Send, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "../axios";
-import { add_between_chats } from "../redux/chatSlice";
+import { add_between_chats, addMessage_with_sockets } from "../redux/chatSlice";
+import { useWebSocket } from "../socketIOClient";
 
-const MessageInput = () => {
+const MessageInput = ({ scrollToBottom }) => {
   const dispatch = useDispatch();
-
+  const socketRef = useWebSocket();
   const [text, setText] = useState("");
-  console.log(text);
+  //console.log(text);
   // eslint-disable-next-line no-unused-vars
   const [imagePreview, setImagePreview] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -54,29 +55,46 @@ const MessageInput = () => {
       };
       const { data } = await axios.post("messages", messageInput);
       console.log(data);
+      const content = {
+        type: "chat_message",
+        message: text,
+        recipient_id: selectedUser.id,
+      };
+      socketRef.current.send(JSON.stringify(content));
       if (data) {
         dispatch(add_between_chats(data));
         // Clear form
         setText("");
         setImagePreview(null);
       }
+      scrollToBottom();
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (error) {
       console.error("Failed to send message:", error);
     }
   };
 
-  const handleSendMessageSocket = (message) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(
-        JSON.stringify({
-          event: "send_message",
-          content: message,
-          recipient_id: selectedUser.id,
-        })
-      );
+  useEffect(() => {
+    if (socketRef.current) {
+      socketRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("Received:", data);
+
+        if (data.type === "message") {
+          // Dispatch message to Redux store
+          dispatch(
+            addMessage_with_sockets({
+              sender_id: data.sender_id,
+              recipient_id: data.recipient_id,
+              body: data.message,
+              loggedUser: loggedUser,
+            })
+          );
+        }
+      };
     }
-  };
+  }, [dispatch, socketRef]);
+
   return (
     <div className="p-4 w-full">
       {imagePreview && (

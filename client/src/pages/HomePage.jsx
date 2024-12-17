@@ -17,7 +17,7 @@ const HomePage = () => {
     try {
       setIsUsersLoading(true);
       const { data } = await axios.get("/users/get_all");
-      //console.log(data);
+      console.log(data);
       dispatch(get_chat_users(data));
       setIsUsersLoading(false);
     } catch (error) {

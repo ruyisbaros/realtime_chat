@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+    -webkit-user-select: none; /* Safari and older browsers */
+    -ms-user-select: none; /* Edge (pre-Chromium) */
+    user-select: none; /* Standard */
+  }

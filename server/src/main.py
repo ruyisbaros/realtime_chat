@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from fastapi.staticfiles import StaticFiles
 import json
+import asyncio
 from .utils.database import get_db, engine
 from .utils import models
 from .routes import auth_routes, user_routes, message_routes
@@ -49,37 +50,29 @@ app.include_router(message_routes.router)
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await websocket.accept()
     await manager.connect(websocket, user_id)
-    print("WebSocket connection established")
-    print(manager.active_connections)
+    print(f"WebSocket connected for user {user_id}")
+
     try:
-        async for data in websocket.iter_json():  # Use async for loop
+        while True:
+            # Listen for incoming messages
             try:
-                event_type = data.get("event")
-                content = data.get("content")
+                data = await websocket.receive_json()
+                event_type = data.get("type")
+                message_content = data.get("message")
                 recipient_id = data.get("recipient_id", None)
+                print(f"Received message from {user_id} to {
+                      recipient_id}: {message_content}")
 
-                if event_type == "send_message":
-                    if not recipient_id:
-                        await websocket.send_text(json.dumps({"error": "Recipient ID is required"}))
-                        continue
-
-                    # Simply forward the message to the recipient
-                    await manager.send_personal_message(json.dumps({
-                        "event": "receive_message",
-                        "content": content,
-                        "sender_id": user_id
-                    }), recipient_id)
-                elif event_type == "create_comment":
-                    # Example for handling another event type
-                    await manager.broadcast(f"New comment: {content}")
-                elif event_type == "update_profile":
-                    # Add logic for profile updates
-                    await manager.broadcast(f"Client #{user_id} updated profile")
+                if recipient_id:
+                    await manager.send_to_user(
+                        recipient_id=recipient_id,
+                        message=message_content,
+                        sender_id=user_id
+                    )
                 else:
-                    await websocket.send_text(json.dumps({"error": "Unknown event type"}))
-            except Exception as e:
-                print(f"Error processing message: {e}")
-                await websocket.send_text(json.dumps({"error": "Internal server error"}))
+                    print("Recipient ID not provided")
+            except asyncio.TimeoutError:
+                print(f"Timeout waiting for message from user {user_id}")
     except WebSocketDisconnect:
-        print(f"WebSocket connection closed for user {user_id}")
+        print(f"WebSocket disconnected for user {user_id}")
         manager.disconnect(websocket, user_id)

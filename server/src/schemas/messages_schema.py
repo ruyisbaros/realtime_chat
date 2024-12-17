@@ -25,3 +25,8 @@ class MessageOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MessagesWithUserResponse(BaseModel):
+    user: MessageUserOut
+    messages: List[MessageOut]

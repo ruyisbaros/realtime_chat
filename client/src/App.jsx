@@ -2,9 +2,9 @@
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar";
-import { Routes, Route } from "react-router-dom";
-import { useSelector } from "react-redux";
-//import Cookies from "js-cookie";
+import { Routes, Route, useNavigate } from "react-router-dom";
+//import { useSelector } from "react-redux";
+import Cookies from "js-cookie";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -13,51 +13,36 @@ import ProfilePage from "./pages/ProfilePage";
 //import axios from "./axios";
 //import { setCurrentUser } from "./redux/currentUserSlice";
 import SignUpPage from "./pages/SignUpPage";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
+import { WebSocketProvider } from "./socketIOClient";
 
 function App() {
-  const ws = useRef(null); // useRef for WebSocket instance
-  const { loggedUser } = useSelector((store) => store.currentUser);
+  const navigate = useNavigate();
 
-  const establish_sockets = useCallback(async () => {
-    console.log("Socket triggered");
-    ws.current = new WebSocket(`ws://localhost:8000/ws/${loggedUser.id}`);
-
-    ws.current.onopen = () => console.log("ws opened");
-    ws.current.onclose = () => console.log("ws closed");
-
-    /*  ws.current.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "message") {
-          setMessages((prevMessages) => [...prevMessages, data.message]);
-        }
-      } catch (error) {
-        console.error("Error parsing message:", error);
-      }
-    }; */
+  const navigate_to_login = useCallback(async () => {
+    if (!Cookies.get("user")) {
+      navigate("/login");
+    }
   }, []);
+
   useEffect(() => {
-    establish_sockets();
-    return () => {
-      if (ws.current) {
-        ws.current.close();
-      }
-    };
-  }, [establish_sockets]);
+    navigate_to_login();
+  }, [navigate_to_login]);
 
   return (
     <>
       <div className="">
         <ToastContainer position="bottom-center" limit={1} />
         <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<SignUpPage />} />
-        </Routes>
+        <WebSocketProvider>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<SignUpPage />} />
+          </Routes>
+        </WebSocketProvider>
       </div>
     </>
   );

@@ -29,6 +29,15 @@ class ConnectionManager:
         else:
             print(f"Recipient {recipient_id} not found")
 
+    async def send_to_user(self, recipient_id: int, message: str, sender_id: int):
+        if recipient_id in self.active_connections:
+            await self.active_connections[recipient_id].send_json({
+                "type": "message",
+                "message": message,
+                "sender_id": sender_id,  # Include sender ID
+                "recipient_id": recipient_id  # Return recipient ID
+            })
+
     async def broadcast(self, message: str):
         for connection in self.active_connections.values():
             await connection.send_text(message)

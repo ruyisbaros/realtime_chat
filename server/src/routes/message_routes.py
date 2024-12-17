@@ -7,7 +7,7 @@ from io import BytesIO
 from ..utils import models
 from ..utils.database import get_db
 from ..utils.oauth import verify_access_token
-from ..schemas.messages_schema import CreateMessage, MessageOut
+from ..schemas.messages_schema import CreateMessage, MessageOut, MessagesWithUserResponse
 from ..schemas.users_schemas import UserOut
 from ..utils.cloudinary_set import upload_cloud
 
@@ -58,19 +58,27 @@ def get_messages(
     return messages
 
 
-@router.get("/dialogues/{recipient_id}", response_model=List[MessageOut])
+@router.get("/dialogues/{recipient_id}", response_model=MessagesWithUserResponse)
 def get_bilateral_dialogues(
         request: Request,
         recipient_id: int,
         db: Session = Depends(get_db)):
     """Get my bilateral dialogues"""
+    user_info = db.query(models.User).filter(
+        models.User.id == recipient_id).first()
+    if not user_info:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     token = request.cookies.get("jwt_token")
     payload_ = verify_access_token(token)
     current_user = db.query(models.User).filter(
         models.User.email == payload_.get("email")).first()
     messages = db.query(models.Message).filter(((models.Message.sender_id == current_user.id) & (models.Message.recipient_id == recipient_id)) | (
         (models.Message.sender_id == recipient_id) & (models.Message.recipient_id == current_user.id))).all()
-    return messages
+    return {
+        "user": user_info,
+        "messages": messages
+    }
 
 
 @router.get("/{message_id}", response_model=MessageOut)
